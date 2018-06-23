@@ -22,14 +22,17 @@ The script bypasses the dependency tree for each installed package from the loca
 * Depends_On - number of all dependencies;
 * Full_Size - full package size with all dependencies;
 * Used_By - number of packages that uses this package;
-* Shared_Size - shared size that can be attributed to each package that uses this package;
-* Relative_Size - relatively ***honest size*** which includes its own installed size and the sum of shared sizes of used packages.
+* Shared_Size - shared size that can be attributed to each package
+  that uses this package (the installed size divided by the number
+  of packages needing this package);
+* Relative_Size - relatively ***honest size*** size which includes its own
+  installed size plus the sum of shared sizes of all its dependencies.
 
 The table is sorted by Relative_Size in descending order.
 
 ## Features
 * Calculating the relative size of the package with all dependencies. It allows you to more realistically estimate the size of the package in your particular system.
-* When the dependency tree is traversed consistency checks are performed - you will be warn about possible problems. This will allow you to learn more about the features of your installation.
+* When the dependency tree is traversed then consistency checks are performed and you will be warn about possible issues. This allows you to learn more about the features of your installation.
 * One Python script without third-party libraries.
 
 ---
@@ -71,17 +74,17 @@ Sort by Installed_Size(2) descending:
 
 Show only columns Name(1) and Relative_Size(7):
 
-    cat pkgsizes.txt | awk '{print $1"\t"$7}' | less
+    cat pkgsizes.txt | awk '{print $1" "$7}' | column -t | less
 
 Output Name(1) and Relative_Size(7) for those rows for which the Used_By (5) field is 0, i.e. packages not used by other packages:
 
-    cat pkgsizes.txt | awk '$5 == 0 { print $1"\t"$7 }' | column -t | less
+    cat pkgsizes.txt | awk '$5 == 0 { print $1" "$7 }' | column -t | less
 
 ---
 
 ## The idea of ​​the script
 
-The need to sort packagers by size led me to the thread of forum where Allan McRae posted the 'bigpkg' script to analyze the packages by their relative sizes.  
+The need to sort packagers by sizes led me to the thread of forum where Allan McRae posted the 'bigpkg' script to analyze the packages by their relative sizes.  
 Here is that topic:
 <https://bbs.archlinux.org/viewtopic.php?id=73098>
 
@@ -91,7 +94,7 @@ From that script the idea of ​​a relatively honest size was taken. This scri
 
 Based on the idea:  
 bigpkg - find packages that require a lot of space on your system  
-Copyright © 2009-2011 by Allan McRae <allan@archlinux.org> 
+Copyright © 2009-2011  Allan McRae <allan@archlinux.org> 
 
 
 ## License

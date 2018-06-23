@@ -22,7 +22,7 @@ icu                 35.1MiB        9           202.9MiB   155      231.9KiB     
 * Full_Size - полный размер пакета со всеми зависимостями;
 * Used_By - количество пакетов, которые используют данный пакет;
 * Shared_Size - разделяемый размер, который приходится на каждый пакет, использующий этот пакет;
-* Relative_Size - относительно ***честный размер***, который включает собственный размер и сумму разделяемых размеров используемых пакетов.
+* Relative_Size - относительно ***честный размер***, который включает собственный размер и сумму разделяемых размеров всех используемых пакетов.
 
 Таблица отсортирована по полю Relative_Size в порядке убывания.
 
@@ -70,11 +70,11 @@ icu                 35.1MiB        9           202.9MiB   155      231.9KiB     
 
 Показать только колонки Name(1) и Relative_Size(7):
 
-    cat pkgsizes.txt | awk '{print $1"\t"$7}' | less
+    cat pkgsizes.txt | awk '{print $1" "$7}' | column -t | less
 
 Вывести Name(1) и Relative_Size(7) тех строк, у которых поле Used_By(5) равно 0, т.е. пакеты, не используемые другими пакетами:
 
-    cat pkgsizes.txt | awk '$5 == 0 { print $1"\t"$7 }' | column -t | less
+    cat pkgsizes.txt | awk '$5 == 0 { print $1" "$7 }' | column -t | less
 
 ---
 
@@ -154,7 +154,7 @@ C            1             0          1         1          1             1
 
 Основано на идее скрипта:  
 bigpkg - find packages that require a lot of space on your system  
-Copyright © 2009-2011 by Allan McRae <allan@archlinux.org> 
+Copyright © 2009-2011  Allan McRae <allan@archlinux.org> 
 
 
 ## Лицензия

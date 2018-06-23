@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""pkgsizes v0.1.0
+"""pkgsizes v0.1.1
 
 Script prints a table with ACTUAL sizes of packages in Arch Linux.
 
 The script bypasses the dependency tree for each installed package
 from the local database and prints a table with fields:
-  * Name - package name;
-  * Installed_Size - own installed size;
-  * Depends_On - number of all dependencies;
-  * Full_Size - full package size with all dependencies;
-  * Used_By - number of packages that uses this package;
-  * Shared_Size - shared size that can be attributed to each package
-                  that uses this package;
-  * Relative_Size - relatively HONEST size which includes its own installed
-                    size and the sum of shared sizes of used packages.
-
+  (1) Name - package name;
+  (2) Installed_Size - own installed size;
+  (3) Depends_On - number of all dependencies;
+  (4) Full_Size - full package size with all dependencies;
+  (5) Used_By - number of packages that uses this package;
+  (6) Shared_Size - shared size that can be attributed to each package
+      that uses this package (the installed size divided by the number
+      of packages needing this package);
+  (7) Relative_Size - relatively HONEST size which includes its own
+      installed size plus the sum of shared sizes of all its dependencies.
 The table is sorted by Relative_Size in descending order.
 
 Usage:
   Run script and save the table to a file:
-  python pkgsizes.py > pkgsizes.txt
+    python pkgsizes.py > pkgsizes.txt
 
 Options:
   no options
@@ -36,33 +36,33 @@ Examples:
   Sort by Installed_Size(2) descending:
     cat pkgsizes.txt | sort -hrk 2 | column -t | less
   Show only columns Name(1) and Relative_Size(7):
-    cat pkgsizes.txt | awk '{print $1"\t"$7}' | less
+    cat pkgsizes.txt | awk '{print $1" "$7}' | column -t | less
 
 Based on the idea:
   bigpkg - find packages that require a lot of space on your system
-  Copyright © 2009-2011 by Allan McRae <allan@archlinux.org>
+  Copyright © 2009-2011  Allan McRae <allan@archlinux.org>
 
----------------------------------------------------------------------
+License:
+  pkgsizes  Copyright © 2018  Andrey Balandin
+  Repository: https://github.com/AndreyBalandin/archlinux-pkgsizes
+  Released under the GPL3 License: https://www.gnu.org/licenses/gpl
 
-pkgsizes  Copyright © 2018  Andrey Balandin
-Repository: https://github.com/AndreyBalandin/archlinux-pkgsizes
-Released under the GPL3 License: https://www.gnu.org/licenses/gpl
-
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
----------------------------------------------------------------------
 """
+
+# ---------------------------------------------------------------------
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ---------------------------------------------------------------------
 
 import re
 import sys
@@ -235,6 +235,9 @@ def output(packages):
 # ---------- Main section ----------
 
 if __name__ == '__main__':
-    packages = read_local_database()
-    process_packages(packages)
-    output(packages)
+    if len(sys.argv) > 1:
+        warn(__doc__)
+    else:
+        packages = read_local_database()
+        process_packages(packages)
+        output(packages)
