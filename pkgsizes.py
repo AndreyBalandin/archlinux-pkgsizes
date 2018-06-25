@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""pkgsizes v0.1.1
+"""pkgsizes v0.1.2
 
 Script prints a table with ACTUAL sizes of packages in Arch Linux.
 
@@ -221,13 +221,17 @@ def process_packages(packages):
 def output(packages):
     """Output and summarize."""
     total_size = 0
-    print('Name', 'Installed_Size', 'Depends_On', 'Full_Size', 'Used_By',
-          'Shared_Size', 'Relative_Size', sep='\t')
-    for pkg in sorted(packages, key=attrgetter('relative_size'), reverse=True):
-        print(pkg.name, humanize(pkg.size), len(pkg.full_depends),
-              humanize(pkg.full_size), pkg.used_by, humanize(pkg.shared_size),
-              humanize(pkg.relative_size), sep='\t')
-        total_size += pkg.size
+    try:
+        print('Name', 'Installed_Size', 'Depends_On', 'Full_Size', 'Used_By',
+              'Shared_Size', 'Relative_Size', sep='\t')
+        for pkg in sorted(packages, key=attrgetter('relative_size'), reverse=True):
+            print(pkg.name, humanize(pkg.size), len(pkg.full_depends),
+                  humanize(pkg.full_size), pkg.used_by, humanize(pkg.shared_size),
+                  humanize(pkg.relative_size), sep='\t')
+            total_size += pkg.size
+    except BrokenPipeError:
+        warn('BrokenPipeError was caught. Nothing wrong. Please, save '
+             'standard output to a file then analyze it with pipes.')
     warn('Processed packages:', len(packages))
     warn('Total Installed Size:', humanize(total_size, sep=' '))
 
