@@ -4,6 +4,7 @@
 > Описание на русском: [README.ru.md](README.ru.md).
 
 [![ArchLinux](https://img.shields.io/badge/distribution-Arch%20Linux-blue.svg)](https://www.archlinux.org/)
+[![AUR package](https://repology.org/badge/version-for-repo/aur/pkgsizes.svg)](https://repology.org/metapackage/pkgsizes)
 [![made-with-python](https://img.shields.io/badge/made%20with-Python-yellow.svg)](https://www.python.org/)
 [![GPL license](https://img.shields.io/badge/license-GPL-yellowgreen.svg)](https://www.gnu.org/licenses/gpl.html)
 
@@ -54,7 +55,9 @@ Copy the script to your current directory:
 
 Run script and save the table to a file:
 
-    python pkgsizes.py > pkgsizes.txt
+    python3 pkgsizes.py > pkgsizes.txt
+
+> The data table is output to standard stream. Warnings and additional information are printed to error stream.
 
 View the whole table:
 

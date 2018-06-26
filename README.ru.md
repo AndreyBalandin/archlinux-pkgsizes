@@ -3,6 +3,7 @@
 > Скрипт выводит таблицу с РЕАЛЬНЫМИ размерами пакетов Arch Linux.  
 
 [![ArchLinux](https://img.shields.io/badge/distribution-Arch%20Linux-blue.svg)](https://www.archlinux.org/)
+[![AUR package](https://repology.org/badge/version-for-repo/aur/pkgsizes.svg)](https://repology.org/metapackage/pkgsizes)
 [![made-with-python](https://img.shields.io/badge/made%20with-Python-yellow.svg)](https://www.python.org/)
 [![GPL license](https://img.shields.io/badge/license-GPL-yellowgreen.svg)](https://www.gnu.org/licenses/gpl.html)
 
@@ -50,7 +51,9 @@ icu                 35.1MiB        9           202.9MiB   155      231.9KiB     
 
 Запустить скрипт и сохранить таблицу в файл:
 
-    python pkgsizes.py > pkgsizes.txt
+    python3 pkgsizes.py > pkgsizes.txt
+
+> В стандартный поток выводится только таблица. В поток ошибок выводятся предупреждения и дополнительная информация.
 
 Посмотреть всю таблицу:
 
