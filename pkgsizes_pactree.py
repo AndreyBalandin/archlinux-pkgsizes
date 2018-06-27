@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""pkgsizes.py v0.1.2
+"""pkgsizes_pactree.py v0.1.0
 
 Script prints a table with ACTUAL sizes of packages in Arch Linux.
+
+> This is an alternative implementation of the script - 'pkgsizes.py'.
+> You can read about differences from the main script and about the purpose
+> of developing this version in README.md, section 'The problem of
+> several providers of the same package':
+> https://github.com/AndreyBalandin/archlinux-pkgsizes
 
 The script bypasses the dependency tree for each installed package
 from the local database and prints a table with fields:
@@ -21,7 +27,7 @@ The table is sorted by Relative_Size in descending order.
 
 Usage:
   Run script and save the table to a file:
-    python3 pkgsizes.py > pkgsizes.txt
+    python3 pkgsizes_pactree.py > pkgsizes.txt
 
 Options:
   no options
@@ -43,7 +49,7 @@ Based on the idea:
   Copyright © 2009-2011  Allan McRae <allan@archlinux.org>
 
 License:
-  pkgsizes.py  Copyright © 2018  Andrey Balandin
+  pkgsizes_pactree.py  Copyright © 2018  Andrey Balandin
   Repository: https://github.com/AndreyBalandin/archlinux-pkgsizes
   Released under the GPL3 License: https://www.gnu.org/licenses/gpl
 
@@ -79,7 +85,8 @@ LOCAL_DB_PATH = '/var/lib/pacman/local'
 
 class Package:
     __slots__ = ['name', 'size', 'depends', 'provides', 'full_depends',
-                 'full_size', 'used_by', 'shared_size', 'relative_size']
+                 'required_by', 'full_required_by', 'full_size',
+                 'shared_size', 'relative_size']
 
     def __init__(self, name, size, depends, provides):
         self.name = name
@@ -87,8 +94,9 @@ class Package:
         self.depends = depends
         self.provides = provides
         self.full_depends = []
+        self.required_by = set()
+        self.full_required_by = []
         self.full_size = 0
-        self.used_by = 0
         self.shared_size = 0
         self.relative_size = 0
 
@@ -166,14 +174,14 @@ def read_local_database():
         packages[name] = Package(name, size, depends, provides)
         for customer in provides:
             if customer in providers:
-                # multiple providers for same customer-package
-                warn(f'Warning: package "{name}" provides "{customer}" '
-                     f'but the database already contains provider '
-                     f'"{providers[customer]}" (script will use '
-                     f'"{providers[customer]}" for dependency tree).')
-                continue
-            providers[customer] = packages[name]
-            providers[strip_version(customer)] = packages[name]
+                # make list for multiple providers
+                if isinstance(providers[customer], Package):
+                    providers[customer] = [providers[customer], packages[name]]
+                else:
+                    providers[customer].append(packages[name])
+            else:
+                providers[customer] = packages[name]
+            providers[strip_version(customer)] = providers[customer]
     # replace string values in 'depends' with object references
     for pkg in packages.values():
         new_depends = set()
@@ -181,12 +189,21 @@ def read_local_database():
             repl = (packages.get(strip_version(dep)) or providers.get(dep)
                     or providers.get(strip_version(dep)))
             if repl:
-                new_depends.add(repl)
+                if isinstance(repl, Package):
+                    new_depends.add(repl)
+                    repl.required_by.add(pkg)
+                else:
+                    warn(f'Warning: dependence "{dep}" in package "{pkg}" '
+                         f'has several providers: {repl} (script will use '
+                         f'the first one for dependency tree).')
+                    new_depends.add(repl[0])  # use first for dependency tree
+                    for provider in repl:
+                        provider.required_by.add(pkg)
             else:
                 warn(f'Database Error: package "{pkg}" depends on '
                      f'"{dep}" but the local database does not contain '
                      f'information about package "{dep}".')
-        pkg.depends = list(new_depends)
+        pkg.depends = new_depends
     return list(packages.values())
 
 
@@ -205,15 +222,19 @@ def process_packages(packages):
                     warn(f'Warning: cyclic dependencies found "{pkg}" - "{dep}"')
                 elif ddep not in pkg.full_depends:
                     pkg.full_depends.append(ddep)
-            dep.used_by += 1
             pkg.full_size += dep.size
+        # build the dependency tree from bottom to top to get 'full_required_by'
+        pkg.full_required_by = list(pkg.required_by)
+        for dep in pkg.full_required_by:
+            for ddep in dep.required_by:
+                if ddep != pkg and ddep not in pkg.full_required_by:
+                    pkg.full_required_by.append(ddep)
     for pkg in packages:
-        if pkg.used_by > 0:
-            pkg.shared_size = pkg.size / pkg.used_by
+        if len(pkg.full_required_by) > 0:
+            pkg.shared_size = pkg.size / len(pkg.full_required_by)
     for pkg in packages:
         pkg.relative_size = pkg.size + sum(dep.shared_size
                                            for dep in pkg.full_depends)
-
 
 # ---------- Output Results ----------
 
@@ -226,8 +247,9 @@ def output(packages):
               'Shared_Size', 'Relative_Size', sep='\t')
         for pkg in sorted(packages, key=attrgetter('relative_size'), reverse=True):
             print(pkg.name, humanize(pkg.size), len(pkg.full_depends),
-                  humanize(pkg.full_size), pkg.used_by, humanize(pkg.shared_size),
-                  humanize(pkg.relative_size), sep='\t')
+                  humanize(pkg.full_size), len(pkg.full_required_by),
+                  humanize(pkg.shared_size), humanize(pkg.relative_size),
+                  sep='\t')
             total_size += pkg.size
     except BrokenPipeError:
         warn('BrokenPipeError was caught. Nothing wrong. Please, save '
